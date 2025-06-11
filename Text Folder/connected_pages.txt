@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SkillMate | HackSim Flow + AI Evaluation</title>
+  <style>
+    /* Base styling shared from both files */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #f8fafc; }
+    button {
+      background: #38bdf8;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      color: white;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover { background: #0ea5e9; }
+    section { display: none; padding: 2rem; }
+    section.active { display: block; }
+
+    /* Section titles */
+    h1, h2 { color: #38bdf8; margin-bottom: 1rem; }
+    .card, .flowchart-node, .prerequisite-card {
+      background: #1e293b; border-radius: 12px; padding: 1.5rem;
+      margin-bottom: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .container { max-width: 1000px; margin: 0 auto; }
+
+    /* Navigation */
+    header { background: #1e293b; padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-size: 1.5rem; font-weight: bold; color: #38bdf8; }
+    nav a { color: #f8fafc; margin-left: 1.5rem; text-decoration: none; font-weight: 500; }
+    nav a:hover { color: #38bdf8; }
+
+    /* Flowchart cards */
+    .prerequisites-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    .card-number {
+      width: 30px; height: 30px; background: #38bdf8; color: white;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1rem;
+    }
+
+    /* HackSim */
+    textarea, input[type="file"] {
+      width: 100%; margin-top: 1rem; padding: 0.8rem; border-radius: 6px; border: 1px solid #334155;
+      background: #0f172a; color: white;
+    }
+    #feedback { margin-top: 2rem; background: #1e293b; padding: 1rem; border-radius: 8px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">SkillMate</div>
+    <nav>
+      <a href="#" onclick="navigate('home')">Home</a>
+      <a href="#" onclick="navigate('flowchart')">Flowchart</a>
+      <a href="#" onclick="navigate('hacksim')">HackSim</a>
+    </nav>
+  </header>
+
+  <!-- Home Section -->
+  <section id="home" class="active">
+    <div class="container">
+      <h1>Welcome to SkillMate 🚀</h1>
+      <p>Click below to begin your HackSim journey.</p>
+      <button onclick="navigate('flowchart')">Get Started with HackSim</button>
+    </div>
+  </section>
+
+  <!-- Flowchart Section -->
+  <section id="flowchart">
+    <div class="container">
+      <h2>🧠 HackSim Prerequisites Flowchart</h2>
+      <p>Make sure you've completed all of these before submitting.</p>
+      <div class="prerequisites-grid">
+        <div class="prerequisite-card"><div class="card-number">1</div><p>Upload all working source code files.</p></div>
+        <div class="prerequisite-card"><div class="card-number">2</div><p>Include a clear README file.</p></div>
+        <div class="prerequisite-card"><div class="card-number">3</div><p>Ensure your solution matches the problem.</p></div>
+        <div class="prerequisite-card"><div class="card-number">4</div><p>Write a clear pitch for your solution.</p></div>
+        <div class="prerequisite-card"><div class="card-number">5</div><p>Organize your files and folders.</p></div>
+        <div class="prerequisite-card"><div class="card-number">6</div><p>List all dependencies clearly.</p></div>
+        <div class="prerequisite-card"><div class="card-number">7</div><p>Attach screenshots or demo video.</p></div>
+        <div class="prerequisite-card"><div class="card-number">8</div><p>Clean your code and remove logs.</p></div>
+      </div>
+      <br>
+      <button onclick="navigate('hacksim')">Continue to HackSim</button>
+    </div>
+  </section>
+
+  <!-- HackSim Section -->
+  <section id="hacksim">
+    <div class="container">
+      <h2>💻 HackSim: AI-Powered Evaluation</h2>
+      <p>Submit your pitch and code files below for AI evaluation.</p>
+      <label for="pitch">Pitch:</label>
+      <textarea id="pitch" rows="5"></textarea>
+      <label for="files">Upload Code Files:</label>
+      <input type="file" id="files" multiple />
+      <br><br>
+      <button onclick="submitToAI()">Submit to Gemini AI</button>
+      <div id="feedback"></div>
+    </div>
+  </section>
+
+  <script>
+    function navigate(id) {
+      document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    async function submitToAI() {
+      const pitch = document.getElementById('pitch').value.trim();
+      const files = document.getElementById('files').files;
+      const feedback = document.getElementById('feedback');
+
+      if (!pitch || files.length === 0) {
+        feedback.textContent = '⚠️ Please provide both pitch and at least one code file.';
+        return;
+      }
+
+      let fileList = [];
+      for (let file of files) {
+        const content = await file.text();
+        fileList.push(`--- ${file.name} ---\n${content.slice(0, 200)}`); // Short preview
+      }
+
+      const prompt = `Evaluate the following Hackathon submission:\n\nPITCH:\n${pitch}\n\nFILES:\n${fileList.join('\n\n')}`;
+
+      try {
+        const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=YOUR_API_KEY', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        });
+        const data = await res.json();
+        feedback.textContent = data.candidates?.[0]?.content?.parts?.[0]?.text || '✅ Submitted, but no detailed feedback.';
+      } catch (err) {
+        feedback.textContent = '❌ Error submitting to AI: ' + err.message;
+      }
+    }
+  </script>
+</body>
+</html>

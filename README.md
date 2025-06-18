@@ -39,7 +39,7 @@ SkillMate addresses these problems by providing a guided roadmap, template-based
 
 ## 🛠️ Tech Stack
 
-- **Frontend:** React.js, HTML5, CSS3, JavaScript  
+- **Frontend:** React.js, HTML5, CSS3, JavaScript, React.js  
 - **AI Integration:** Google Gemini API  
 - **Design:** Responsive layout, accessibility support, modern UI
   
